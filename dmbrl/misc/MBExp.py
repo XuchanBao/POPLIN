@@ -17,7 +17,7 @@ import numpy as np
 
 class MBExperiment:
 
-    def __init__(self, params):
+    def __init__(self, params, train_policy=True):
         """Initializes class instance.
 
         Argument:
@@ -78,6 +78,8 @@ class MBExperiment:
         self.nrecord = params.log_cfg.get("nrecord", 0)
         self.neval = params.log_cfg.get("neval", 1)
 
+        self.train_policy = train_policy
+
     def run_experiment(self):
         """Perform experiment.
         """
@@ -110,7 +112,7 @@ class MBExperiment:
             if finished_num_steps >= needed_num_steps:
                 break
 
-        if self.ninit_rollouts > 0:
+        if self.train_policy and self.ninit_rollouts > 0:
             self.policy.train(
                 [sample["obs"] for sample in samples],
                 [sample["ac"] for sample in samples],
@@ -188,7 +190,7 @@ class MBExperiment:
             if len(os.listdir(iter_dir)) == 0:
                 os.rmdir(iter_dir)
 
-            if i < self.ntrain_iters - 1:
+            if self.train_policy and i < self.ntrain_iters - 1:
                 self.policy.train(
                     [sample["obs"] for sample in samples],
                     [sample["ac"] for sample in samples],

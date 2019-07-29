@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import os
+import sys
 import argparse
 import pprint
 import copy
@@ -13,6 +14,9 @@ from dmbrl.misc.MBExp import MBExperiment
 from dmbrl.controllers.MPC import MPC
 from dmbrl.config import create_config
 from dmbrl.misc import logger
+
+mbbl_path = "../mbbl"
+sys.path.append(mbbl_path)
 
 
 def main(env, ctrl_type, ctrl_args, overrides, logdir, args):
@@ -25,7 +29,7 @@ def main(env, ctrl_type, ctrl_args, overrides, logdir, args):
         cfg.exp_cfg.exp_cfg.policy = MPC(cfg.ctrl_cfg)
 
     cfg.exp_cfg.misc = copy.copy(cfg)
-    exp = MBExperiment(cfg.exp_cfg)
+    exp = MBExperiment(cfg.exp_cfg, train_policy=bool(args.train_policy))
 
     if not os.path.exists(exp.logdir):
         os.makedirs(exp.logdir)
@@ -47,6 +51,7 @@ if __name__ == "__main__":
                         help='Directory to which results will be logged (default: ./log)')
     parser.add_argument('-e_popsize', type=int, default=500,
                         help='different popsize to use')
+    parser.add_argument('-train_policy', type=int, default=1)
     args = parser.parse_args()
 
     main(args.env, "MPC", args.ctrl_arg, args.override, args.logdir, args)
