@@ -63,12 +63,16 @@ class NN:
         if params.get('load_model', False):
             if self.model_dir is None:
                 raise ValueError("Cannot load model without providing model directory.")
-            self._load_structure()
-            self.num_nets, self.model_loaded = self.layers[0].get_ensemble_size(), True
-            logger.info("Model loaded from %s." % self.model_dir)
+            # self._load_structure()
+            # self.num_nets, self.model_loaded = self.layers[0].get_ensemble_size(), True
+            # logger.info("Model loaded from %s." % self.model_dir)
+            self.num_nets = params.get('num_networks', 1)
+            self.model_loaded = False
+            self.load_model_values = True
         else:
             self.num_nets = params.get('num_networks', 1)
             self.model_loaded = False
+            self.load_model_values = False
 
         if self.num_nets == 1:
             logger.info("Created a neural network without variance predictions.")
@@ -188,12 +192,23 @@ class NN:
                 self.create_prediction_tensors(self.sy_pred_in3d, factored=True)[0]
 
         # Load model if needed
-        if self.model_loaded:
+        if self.model_loaded or self.load_model_values:
             with self.sess.as_default():
-                params_dict = loadmat(os.path.join(self.model_dir, "%s.mat" % self.name))
-                all_vars = self.nonoptvars + self.optvars
-                for i, var in enumerate(all_vars):
-                    var.load(params_dict[str(i)])
+                # params_dict = loadmat(os.path.join(self.model_dir, "%s.mat" % self.name))
+                # all_vars = self.nonoptvars + self.optvars
+                # for i, var in enumerate(all_vars):
+                #     var.load(params_dict[str(i)])
+
+                load_path = self.model_dir  # ends with .npz
+                logger.info("Restoring dynamics network weights from {}".format(load_path))
+
+                # Data loaded in npz format
+                data = np.load(load_path)
+
+                for var_name in data.files:
+                    logger.info("Loading value to variable {}".format(var_name))
+                    tensor = self.sess.graph.get_tensor_by_name("{}:0".format(var_name))
+                    self.sess.run(tf.assign(tensor, data[var_name]))
 
         self.finalized = True
 

@@ -110,12 +110,14 @@ class HalfCheetahConfigModule:
             model_dir=model_init_cfg.get("model_dir", None),
             misc=misc
         ))
-        if not model_init_cfg.get("load_model", False):
-            model.add(FC(200, input_dim=self.MODEL_IN, activation="swish", weight_decay=0.000025))
-            model.add(FC(200, activation="swish", weight_decay=0.00005))
-            model.add(FC(200, activation="swish", weight_decay=0.000075))
-            model.add(FC(200, activation="swish", weight_decay=0.000075))
-            model.add(FC(self.MODEL_OUT, weight_decay=0.0001))
+
+        # For now, always construct model
+        model.add(FC(1000, input_dim=self.MODEL_IN, activation="swish", weight_decay=0.000025))
+        model.add(FC(1000, activation="swish", weight_decay=0.00005))
+        model.add(FC(1000, activation="swish", weight_decay=0.000075))
+        model.add(FC(1000, activation="swish", weight_decay=0.000075))
+        model.add(FC(self.MODEL_OUT, weight_decay=0.0001))
+
         model.finalize(tf.train.AdamOptimizer, {"learning_rate": 0.001})
         return model
 
